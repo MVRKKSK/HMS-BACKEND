@@ -6,7 +6,8 @@ exports.getAdminID = (req, res) => {
 
   exports.addDoctor = (req, res) => {
     const { userId, doctorUserID, specialization, qualification } = req.body;
-    console.log(userId)
+    console.log(userId);
+  
     // Step 1: Get AdminID for logging
     const getAdminQuery = `SELECT AdminID FROM Admin WHERE UserID = ?`;
     db.query(getAdminQuery, [userId], (err, adminResult) => {
@@ -26,27 +27,34 @@ exports.getAdminID = (req, res) => {
   
         const newDoctorID = doctorResult.insertId;
   
-        // Step 3: Insert into Specialization, Position, AddDoctors
-        const insertSpecialization = `INSERT INTO DoctorSpecialization (DoctorID, Specialization) VALUES (?, ?)`;
-        const insertPosition = `INSERT INTO DoctorPosition (DoctorID, Position) VALUES (?, 'Junior')`;
-        const insertLog = `INSERT INTO AddDoctors (AdminID, DoctorID) VALUES (?, ?)`;
+        // Step 2.5: Update role to 'doctor'
+        const updateRoleQuery = `UPDATE Users SET Role = 'doctor' WHERE UserID = ?`;
+        db.query(updateRoleQuery, [doctorUserID], (errRole) => {
+          if (errRole) return res.status(500).json({ message: 'Doctor added but failed to update role', error: errRole });
   
-        db.query(insertSpecialization, [newDoctorID, specialization], (err3) => {
-          if (err3) return res.status(500).json({ message: 'Failed to insert specialization', error: err3 });
+          // Step 3: Insert into Specialization, Position, AddDoctors
+          const insertSpecialization = `INSERT INTO DoctorSpecialization (DoctorID, Specialization) VALUES (?, ?)`;
+          const insertPosition = `INSERT INTO DoctorPosition (DoctorID, Position) VALUES (?, 'Junior')`;
+          const insertLog = `INSERT INTO AddDoctors (AdminID, DoctorID) VALUES (?, ?)`;
   
-          db.query(insertPosition, [newDoctorID], (err4) => {
-            if (err4) return res.status(500).json({ message: 'Failed to insert position', error: err4 });
+          db.query(insertSpecialization, [newDoctorID, specialization], (err3) => {
+            if (err3) return res.status(500).json({ message: 'Failed to insert specialization', error: err3 });
   
-            db.query(insertLog, [adminID, newDoctorID], (err5) => {
-              if (err5) return res.status(500).json({ message: 'Doctor added but log failed', error: err5 });
+            db.query(insertPosition, [newDoctorID], (err4) => {
+              if (err4) return res.status(500).json({ message: 'Failed to insert position', error: err4 });
   
-              res.status(201).json({ message: 'Doctor added successfully' });
+              db.query(insertLog, [adminID, newDoctorID], (err5) => {
+                if (err5) return res.status(500).json({ message: 'Doctor added but log failed', error: err5 });
+  
+                res.status(201).json({ message: 'Doctor added successfully' });
+              });
             });
           });
         });
       });
     });
   };
+  
   
   
   
