@@ -45,6 +45,7 @@ exports.loginUser = (req, res) => {
 
   const userQuery = `SELECT * FROM Users WHERE Email = ?`;
   db.query(userQuery, [email], async (err, results) => {
+    console.log(err)
     if (err) return res.status(500).json({ message: 'Database error', details: err });
     if (results.length === 0) return res.status(401).json({ message: 'Invalid email or password' });
 
@@ -58,6 +59,7 @@ exports.loginUser = (req, res) => {
 
     const doctorQuery = `SELECT * FROM Doctors WHERE UserID = ?`;
     db.query(doctorQuery, [user.UserID], (err2, doctorResults) => {
+      console.log(err)
       if (err2) return res.status(500).json({ message: 'Doctor check failed', details: err2 });
 
       const role = doctorResults.length > 0 ? 'doctor' : 'patient';
