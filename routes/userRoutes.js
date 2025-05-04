@@ -12,7 +12,7 @@ router.get('/:userId/prescriptions', prescriptionController.getPrescriptionsByPa
 router.get('/:userId/tests', userController.getTestsForPatient);
 router.get('/', userController.getAllUsers);
 router.get('/:userID/get-appointments', userController.getScheduledAppointments);
-router.get('/report/download/:testId', userController.downloadReport);
+// router.get('/report/download/:testId', userController.downloadReport);
 
 
 module.exports = router;

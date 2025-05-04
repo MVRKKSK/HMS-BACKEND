@@ -13,14 +13,31 @@ exports.registerUser = async (req, res) => {
                        VALUES (?, ?, ?, ?, ?, ?)`;
 
     db.query(userQuery, [name, email, contact, gender, age, hashedPassword], (err, result) => {
-      if (err) return res.status(500).json({ error: 'User registration failed.', details: err });
-      return res.status(201).json({ message: 'User registered successfully.', userId: result.insertId });
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: 'User registration failed.', details: err });
+      }
+
+      const userId = result.insertId;
+      const patientQuery = `INSERT INTO Patients (UserID, Name, Gender, Age) VALUES (?, ?, ?, ?)`;
+
+      db.query(patientQuery, [userId, name, gender, age], (err) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ error: 'User registered, but failed to add to Patients table.', details: err });
+        }
+
+        return res.status(201).json({ message: 'User registered successfully and added to Patients.', userId });
+      });
     });
 
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: 'Server error during registration.', details: error.message });
   }
 };
+
+
 
 exports.loginUser = (req, res) => {
   const { email, password } = req.body;
@@ -83,6 +100,7 @@ exports.getTestsForPatient = (req, res) => {
 
     db.query(testQuery, [patientId], (err, tests) => {
       if (err) {
+        console.log(err);
         return res.status(500).json({ message: 'Error fetching tests' });
       }
 

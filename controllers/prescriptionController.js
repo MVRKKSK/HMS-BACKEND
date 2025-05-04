@@ -32,6 +32,7 @@ exports.getPrescriptionsByPatient = (req, res) => {
 
   db.query(getPatientIDQuery, [userId], (err, result) => {
     if (err || result.length === 0) {
+      console.log(err);
       return res.status(400).json({ message: 'Patient not found' });
     }
 
@@ -47,6 +48,7 @@ exports.getPrescriptionsByPatient = (req, res) => {
 
     db.query(getPrescriptionsQuery, [patientId], async (err, prescriptions) => {
       if (err) {
+        console.log(err);
         return res.status(500).json({ message: 'Error retrieving prescriptions' });
       }
 
