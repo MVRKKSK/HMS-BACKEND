@@ -19,3 +19,18 @@ exports.addMedicine = (req, res) => {
     res.status(201).json({ message: 'Medicine added successfully' });
   });
 };
+
+// controllers/medicineController.js
+
+exports.getAllMedicines = (req, res) => {
+  const query = 'SELECT * FROM Medicine';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching medicines:', err);
+      return res.status(500).json({ message: 'Failed to fetch medicines', error: err });
+    }
+
+    res.status(200).json({ medicines: results });
+  });
+};

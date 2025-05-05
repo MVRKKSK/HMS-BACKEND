@@ -5,18 +5,21 @@ exports.createPrescription = (req, res) => {
 
   const getDoctorQuery = 'SELECT DoctorID FROM Doctors WHERE UserID = ?';
   db.query(getDoctorQuery, [userId], (err, doctorResult) => {
+    console.log(err);
     if (err || doctorResult.length === 0) return res.status(500).json({ message: 'Doctor not found' });
 
     const doctorId = doctorResult[0].DoctorID;
     const insertPrescriptionQuery = 'INSERT INTO Prescription (PatientID, DoctorID, Date, Time) VALUES (?, ?, ?, ?)';
 
     db.query(insertPrescriptionQuery, [patientId, doctorId, date, time], (err, result) => {
+      console.log(err);
       if (err) return res.status(500).json({ message: 'Error creating prescription' });
       const prescriptionId = result.insertId;
       const values = medicines.map(medId => [prescriptionId, medId]);
 
       const insertContainsQuery = 'INSERT INTO Contains (PrescriptionID, MedicineID) VALUES ?';
       db.query(insertContainsQuery, [values], (err) => {
+        console.log(err);
         if (err) return res.status(500).json({ message: 'Error linking medicines' });
         res.status(200).json({ message: 'Prescription created successfully' });
       });

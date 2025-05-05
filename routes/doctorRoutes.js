@@ -5,6 +5,9 @@ const doctorController = require('../controllers/doctorController');
 router.get('/', doctorController.getAllDoctors);
 router.post('/schedule-test', doctorController.scheduleTest);
 router.get('/:userID/appointments', doctorController.getDoctorAppointments);
+router.get('/tests/:userId', doctorController.getScheduledTestsByUserId);
+router.post('/generate-report', doctorController.generateReport);
+router.put('/edit-description', doctorController.updateTestDescription);
 
 module.exports = router;
 // import {

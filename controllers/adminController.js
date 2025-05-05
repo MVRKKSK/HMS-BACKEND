@@ -182,6 +182,25 @@ exports.importUsersFromCSV = (req, res) => {
 //     });
 // };
 
+exports.deleteMedicine = (req, res) => {
+  const { medicineID } = req.params; // Medicine ID passed in the URL
+
+  // SQL query to delete the medicine
+  const deleteQuery = `DELETE FROM Medicine WHERE MedicineID = ?`;
+
+  db.query(deleteQuery, [medicineID], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: 'Failed to delete medicine', error: err });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Medicine not found' });
+    }
+
+    res.status(200).json({ message: 'Medicine deleted successfully' });
+  });
+};
 
 
   exports.addDoctor = (req, res) => {
@@ -240,27 +259,51 @@ exports.importUsersFromCSV = (req, res) => {
   
   // Promote a user to admin
   exports.addAdminUser = (req, res) => {
-    const { adminID, userID, position, experience } = req.body;
+    const { userID, position, experience } = req.body; // No need to pass gender and age in the request
   
-    const insertAddUser = `
-      INSERT INTO AddUsers (AdminID, UserID, NewAdminID, Experience, Position) 
-      VALUES (?, ?, ?, ?, ?)`;
+    // Fetch the user's data (Name, Age, Gender) from the Users table
+    const getUserDataQuery = `SELECT Name, Age, Gender FROM Users WHERE UserID = ?`;
   
-    const updateUserRole = `
-      UPDATE Users SET Role = 'admin' WHERE UserID = ?`;
-  
-    db.query(insertAddUser, [adminID, userID, userID, experience, position], (err) => {
+    db.query(getUserDataQuery, [userID], (err, results) => {
       if (err) {
-        return res.status(500).json({ message: 'Failed to promote user to admin', error: err });
+        console.log(err);
+        return res.status(500).json({ message: 'Error fetching user data', error: err });
       }
   
-      db.query(updateUserRole, [userID], (err) => {
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      const userName = results[0].Name;
+      const userAge = results[0].Age;
+      const userGender = results[0].Gender;
+  
+      // Insert the admin into the Admin table
+      const insertAdmin = `
+        INSERT INTO Admin (UserID, Name, Gender, Position, Experience, Age) 
+        VALUES (?, ?, ?, ?, ?, ?)`;
+  
+      // Update the User's role to 'admin' in the Users table
+      const updateUserRole = `
+        UPDATE Users SET Role = 'admin' WHERE UserID = ?`;
+  
+      db.query(insertAdmin, [userID, userName, userGender, position, experience, userAge], (err, result) => {
         if (err) {
-          return res.status(500).json({ message: 'User role updated in AddUsers but failed in Users table', error: err });
+          console.log(err);
+          return res.status(500).json({ message: 'Failed to add admin', error: err });
         }
   
-        res.status(201).json({ message: 'Admin user added and role updated successfully' });
+        // Update user role after successful insertion
+        db.query(updateUserRole, [userID], (err) => {
+          if (err) {
+            return res.status(500).json({ message: 'Failed to update user role to admin', error: err });
+          }
+  
+          // Return success message if both queries are successful
+          res.status(201).json({ message: 'Admin user added and role updated successfully' });
+        });
       });
     });
   };
+  
   

@@ -110,6 +110,58 @@ exports.getTestsForPatient = (req, res) => {
     });
   });
 };
+exports.getScheduledTests = (req, res) => {
+  const { userId } = req.params;
+
+  // Step 1: Get PatientID from UserID
+  const getPatientIdQuery = `SELECT PatientID FROM Patients WHERE UserID = ?`;
+
+  db.query(getPatientIdQuery, [userId], (err, result) => {
+    if (err) {
+      console.error('Error retrieving patient ID:', err);
+      return res.status(500).json({ message: 'Failed to retrieve patient ID' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Patient not found for the given user' });
+    }
+
+    const patientId = result[0].PatientID;
+
+    // Step 2: Get scheduled tests with report info
+    const query = `
+      SELECT 
+  t.TestID,
+  t.PatientID,
+  t.DoctorID,
+  t.Date,
+  t.Time,
+  t.TestName,
+  t.Description AS TestDescription,
+  d.Name AS DoctorName, -- ✅ changed from d.DoctorName to d.Name
+  IF(gr.TestID IS NOT NULL, true, false) AS ReportExists,
+  gr.Description AS ReportDescription
+FROM TestPerformed t
+JOIN Doctors d ON t.DoctorID = d.DoctorID
+LEFT JOIN GenerateReport gr ON t.TestID = gr.TestID
+WHERE t.PatientID = ?
+
+    `;
+
+    db.query(query, [patientId], (err, results) => {
+      if (err) {
+        console.error('Error fetching tests:', err);
+        return res.status(500).json({ message: 'Failed to fetch scheduled tests' });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'No scheduled tests found for this patient' });
+      }
+      console.log(results)
+      res.status(200).json(results);
+    });
+  });
+};
 
 
 
