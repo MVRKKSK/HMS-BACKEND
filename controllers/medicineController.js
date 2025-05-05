@@ -5,7 +5,7 @@ const db = require('../config/db');
 exports.addMedicine = (req, res) => {
   const { MedicineName, Company, Dosage } = req.body;
 
-  if (!MedicineName || !Company || !Dosage) {
+  if (!MedicineName || !Company || !Dosage ) {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
