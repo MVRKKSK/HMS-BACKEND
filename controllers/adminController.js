@@ -3,6 +3,67 @@ const bcrypt = require('bcrypt');
 const db = require('../config/db');
 const fs = require('fs');
 
+
+// Find user by email (from body)
+exports.findUser = (req, res) => {
+  const { email } = req.body;
+  const sql = `SELECT * FROM Users WHERE Email = ?`;
+  db.query(sql, [email], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.status(404).json({});
+    res.json(results[0]);
+  });
+};
+
+// Find doctor by email (from body)
+exports.findDoctor = (req, res) => {
+  const { email } = req.body;
+  console.log(email)
+  const sql = `
+    SELECT d.* FROM Doctors d
+    JOIN Users u ON d.UserID = u.UserID
+    WHERE u.Email = ?
+  `;
+  db.query(sql, [email], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    console.log(err)
+    if (results.length === 0) return res.status(404).json({});
+    res.json(results[0]);
+  });
+};
+
+// Update user details
+exports.updateUser = (req, res) => {
+  const userId = req.params.userId;
+  const { Name, Email, Contact, Gender, Age, Password } = req.body;
+  const sql = `
+    UPDATE Users 
+    SET Name = ?, Email = ?, Contact = ?, Gender = ?, Age = ?, Password = ?
+    WHERE UserID = ?
+  `;
+  db.query(sql, [Name, Email, Contact, Gender, Age, Password, userId], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.send('User updated successfully');
+  });
+};
+
+// Update doctor details
+exports.updateDoctor = (req, res) => {
+  const doctorId = req.params.doctorId;
+  console.log(doctorId)
+  const { Name, Gender, Age, Department, Cabin, Password } = req.body;
+  const sql = `
+    UPDATE Doctors 
+    SET Name = ?, Gender = ?, Age = ?, Department = ?, Cabin = ?, Password = ?
+    WHERE DoctorID = ?
+  `;
+  db.query(sql, [Name, Gender, Age, Department, Cabin, Password, doctorId], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.send('Doctor updated successfully');
+  });
+};
+
+
 exports.importUsersFromCSV = (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
