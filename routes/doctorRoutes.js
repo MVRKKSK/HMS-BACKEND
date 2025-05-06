@@ -8,7 +8,7 @@ router.get('/:userID/appointments', doctorController.getDoctorAppointments);
 router.get('/tests/:userId', doctorController.getScheduledTestsByUserId);
 router.post('/generate-report', doctorController.generateReport);
 router.put('/edit-description', doctorController.updateTestDescription);
-
+// console.log("hello")
 module.exports = router;
 // import {
 //   updateDoctor,
